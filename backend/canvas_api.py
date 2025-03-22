@@ -1,11 +1,19 @@
 import requests
 import json
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 # === Configuration ===
-API_TOKEN = "349~CKB6tRhEUuZ8urWDP8Jt9c67wzWJVFK7NWLhLGYtHaTVC9GEEDk4D4xCV4Kk3FaA"
-BASE_URL = "https://csufullerton.instructure.com/api/v1"
-HEADERS = {"Authorization": f"Bearer {API_TOKEN}"}
+CANVAS_API_TOKEN = os.getenv('CANVAS_API_TOKEN')
+if not CANVAS_API_TOKEN:
+    raise ValueError("CANVAS_API_TOKEN not found in environment variables")
+
+BASE_URL = "https://csulb.instructure.com/api/v1"
+HEADERS = {"Authorization": f"Bearer {CANVAS_API_TOKEN}"}
 
 # === Helper Functions ===
 
@@ -34,7 +42,8 @@ def get_user_profile():
     return {}
 
 def get_courses():
-    url = f"{BASE_URL}/courses?state[]=all&per_page=100"
+    # Include the term object by adding include[]=term to the URL
+    url = f"{BASE_URL}/courses?state[]=all&per_page=100&include[]=term"
     resp = requests.get(url, headers=HEADERS)
     print(f"GET {url} -> {resp.status_code}")
     if resp.status_code == 200:
@@ -86,17 +95,18 @@ def main():
     
     # 1. Get user profile.
     profile = get_user_profile()
-    
-    
     output["user_profile"] = {
         "id": profile.get("id"),
         "name": profile.get("name"),
         "sortable_name": profile.get("sortable_name")
     }
     
-    # 2. Get all courses and filter for Spring 2025.
+    # 2. Get all courses and filter for Spring 2025 by checking the term.
     courses = get_courses()
-    spring_courses = [course for course in courses if course.get("name") and "Spring 2025" in course.get("name")]
+    spring_courses = [
+        course for course in courses 
+        if course.get("term") and course["term"].get("name") == "Spring 2025"
+    ]
     
     # 3. Get enrollments (for overall grade info).
     enrollments = get_enrollments()
@@ -181,8 +191,6 @@ def main():
             course_data["assignments"]["past"].append(a_entry)
         
         output["courses"].append(course_data)
-    
-    # (Optionally, you could fetch calendar events similarly.)
     
     # Write JSON output (for example, to later upload to Firebase).
     with open("canvas_output.json", "w", encoding="utf-8") as f:
