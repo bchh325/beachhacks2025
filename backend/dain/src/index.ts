@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import axios from "axios";
+import fs from 'fs/promises';
+import path from 'path';
 
 import { defineDAINService, ToolConfig } from "@dainprotocol/service-sdk";
 
@@ -14,177 +16,145 @@ import {
 
 const port = Number(process.env.PORT) || 2022;
 
-const getWeatherEmoji = (temperature: number): string => {
-  if (temperature <= 0) return "🥶";
-  if (temperature <= 10) return "❄️";
-  if (temperature <= 20) return "⛅";
-  if (temperature <= 25) return "☀️";
-  if (temperature <= 30) return "🌞";
-  return "🔥";
+interface Assignment {
+  id: number;
+  name: string;
+  due_at: string | null;
+  points_possible: number | null;
+  assignment_type: string[];
+  assignment_group: {
+    group_name: string;
+    group_weight: number;
+  };
+  priorityScore?: number; // Add this line
+}
+
+// Helper function to calculate priority score
+const calculatePriorityScore = (assignment: Assignment): number => {
+  const now = new Date();
+  const deadline = assignment.due_at ? new Date(assignment.due_at) : null;
+  
+  // Calculate deadline score
+  const deadlineScore = deadline 
+    ? Math.max(1, 10 - ((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    : 5; // Default score for assignments without deadline
+  
+  // Calculate weight score
+  const weightScore = assignment.assignment_group.group_weight * 10;
+  
+  // Calculate type importance score
+  const typeScore = assignment.assignment_type.includes("exam") ? 10 
+    : assignment.assignment_type.includes("quiz") ? 8
+    : assignment.assignment_type.includes("homework") ? 6
+    : 4;
+  
+  // Calculate points score
+  const pointsScore = assignment.points_possible 
+    ? Math.min(10, (assignment.points_possible / 10))
+    : 5;
+    
+  // Weight the different factors
+  const priorityScore = 
+    (deadlineScore * 0.4) + 
+    (weightScore * 0.3) + 
+    (typeScore * 0.2) + 
+    (pointsScore * 0.1);
+    
+  return Math.round(priorityScore * 100) / 100;
 };
 
-const getWeatherConfig: ToolConfig = {
-  id: "get-weather",
-  name: "Get Weather",
-  description: "Fetches current weather for a city",
-  input: z
-    .object({
-      locationName: z.string().describe("Location name"),
-      latitude: z.number().describe("Latitude coordinate"),
-      longitude: z.number().describe("Longitude coordinate"),
-    })
-    .describe("Input parameters for the weather request"),
-  output: z
-    .object({
-      temperature: z.number().describe("Current temperature in Celsius"),
-      windSpeed: z.number().describe("Current wind speed in km/h"),
-    })
-    .describe("Current weather information"),
+const getTaskPriorityConfig: ToolConfig = {
+  id: "get-task-priority",
+  name: "Get Task Priority",
+  description: "Analyzes and returns prioritized tasks based on various factors",
+  input: z.object({}).describe("No input needed - uses sample data"),
+  output: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    due_at: z.string().nullable(),
+    points_possible: z.number().nullable(),
+    assignment_type: z.array(z.string()),
+    assignment_group: z.object({
+      group_name: z.string(),
+      group_weight: z.number(),
+    }),
+    priorityScore: z.number(),
+  })).describe("Prioritized list of tasks"),
   pricing: { pricePerUse: 0, currency: "USD" },
-  handler: async (
-    { locationName, latitude, longitude },
-    agentInfo,
-    context
-  ) => {
-    console.log(
-      `User / Agent ${agentInfo.id} requested weather at ${locationName} (${latitude},${longitude})`
-    );
+  handler: async (_, agentInfo, context) => {
+    // Sample data
+    const sampleTasks: Assignment[] = [
+      {
+        id: 1330517,
+        name: "Final Project",
+        due_at: "2025-03-30T23:59:59Z",
+        points_possible: 100,
+        assignment_type: ["homework"],
+        assignment_group: {
+          group_name: "Projects",
+          group_weight: 0.4
+        }
+      },
+      {
+        id: 1330518,
+        name: "Midterm Exam",
+        due_at: "2025-03-25T14:00:00Z",
+        points_possible: 50,
+        assignment_type: ["exam"],
+        assignment_group: {
+          group_name: "Exams",
+          group_weight: 0.3
+        }
+      },
+      {
+        id: 1330519,
+        name: "Weekly Quiz",
+        due_at: "2025-03-23T23:59:59Z",
+        points_possible: 10,
+        assignment_type: ["quiz"],
+        assignment_group: {
+          group_name: "Quizzes",
+          group_weight: 0.2
+        }
+      },
+      {
+        id: 1330520,
+        name: "Reading Response",
+        due_at: null,
+        points_possible: null,
+        assignment_type: ["homework"],
+        assignment_group: {
+          group_name: "Participation",
+          group_weight: 0.1
+        }
+      }
+    ];
 
-    const response = await axios.get(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m`
-    );
+    // Calculate priority scores for each task
+    const prioritizedTasks = sampleTasks.map((task: Assignment) => ({
+      ...task,
+      priorityScore: calculatePriorityScore(task)
+    }));
 
-    const { temperature_2m, wind_speed_10m } = response.data.current;
-    const weatherEmoji = getWeatherEmoji(temperature_2m);
+    // Sort by priority score
+    prioritizedTasks.sort((a: Assignment, b: Assignment) => b.priorityScore - a.priorityScore);
 
     return {
-      text: `The current temperature in ${locationName} is ${temperature_2m}°C with wind speed of ${wind_speed_10m} km/h`,
-      data: {
-        temperature: temperature_2m,
-        windSpeed: wind_speed_10m,
-      },
-      ui: new CardUIBuilder()
+      text: "Here are your prioritized tasks",
+      data: prioritizedTasks,
+      ui: new TableUIBuilder()
         .setRenderMode("page")
-        .title(`Current Weather in ${locationName} ${weatherEmoji}`)
-        .addChild(
-          new MapUIBuilder()
-            .setInitialView(latitude, longitude, 10)
-            .setMapStyle("mapbox://styles/mapbox/streets-v12")
-            .addMarkers([
-              {
-                latitude,
-                longitude,
-                title: locationName,
-                description: `Temperature: ${temperature_2m}°C\nWind: ${wind_speed_10m} km/h`,
-                text: `${locationName} ${weatherEmoji}`,
-              },
-            ])
-            .build()
-        )
-        .content(
-          `Temperature: ${temperature_2m}°C\nWind Speed: ${wind_speed_10m} km/h`
-        )
-        .build(),
-    };
-  },
-};
-
-const getWeatherForecastConfig: ToolConfig = {
-  id: "get-weather-forecast",
-  name: "Get Weather Forecast",
-  description: "Fetches hourly weather forecast",
-  input: z
-    .object({
-      locationName: z.string().describe("Location name"),
-      latitude: z.number().describe("Latitude coordinate"),
-      longitude: z.number().describe("Longitude coordinate"),
-    })
-    .describe("Input parameters for the forecast request"),
-  output: z
-    .object({
-      times: z.array(z.string()).describe("Forecast times"),
-      temperatures: z
-        .array(z.number())
-        .describe("Temperature forecasts in Celsius"),
-      windSpeeds: z.array(z.number()).describe("Wind speed forecasts in km/h"),
-      humidity: z
-        .array(z.number())
-        .describe("Relative humidity forecasts in %"),
-    })
-    .describe("Hourly weather forecast"),
-  pricing: { pricePerUse: 0, currency: "USD" },
-  handler: async (
-    { locationName, latitude, longitude },
-    agentInfo,
-    context
-  ) => {
-    console.log(
-      `User / Agent ${agentInfo.id} requested forecast at ${locationName} (${latitude},${longitude})`
-    );
-
-    const response = await axios.get(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m`
-    );
-
-    const { time, temperature_2m, wind_speed_10m, relative_humidity_2m } =
-      response.data.hourly;
-
-    // Limit to first 24 hours of forecast data
-    const limitedTime = time.slice(0, 24);
-    const limitedTemp = temperature_2m.slice(0, 24);
-    const limitedWind = wind_speed_10m.slice(0, 24);
-    const limitedHumidity = relative_humidity_2m.slice(0, 24);
-
-    const weatherEmoji = getWeatherEmoji(limitedTemp[0]);
-
-    return {
-      text: `Weather forecast for ${locationName} available for the next 24 hours`,
-      data: {
-        times: limitedTime,
-        temperatures: limitedTemp,
-        windSpeeds: limitedWind,
-        humidity: limitedHumidity,
-      },
-      ui: new LayoutUIBuilder()
-        .setRenderMode("page")
-        .setLayoutType("column")
-        .addChild(
-          new MapUIBuilder()
-            .setInitialView(latitude, longitude, 10)
-            .setMapStyle("mapbox://styles/mapbox/streets-v12")
-            .addMarkers([
-              {
-                latitude,
-                longitude,
-                title: locationName,
-                description: `Temperature: ${limitedTemp[0]}°C\nWind: ${limitedWind[0]} km/h`,
-                text: `${locationName} ${weatherEmoji}`,
-              },
-            ])
-            .build()
-        )
-        .addChild(
-          new TableUIBuilder()
-            .addColumns([
-              { key: "time", header: "Time", type: "string" },
-              {
-                key: "temperature",
-                header: "Temperature (°C)",
-                type: "number",
-              },
-              { key: "windSpeed", header: "Wind Speed (km/h)", type: "number" },
-              { key: "humidity", header: "Humidity (%)", type: "number" },
-            ])
-            .rows(
-              limitedTime.map((t: string, i: number) => ({
-                time: new Date(t).toLocaleString(),
-                temperature: limitedTemp[i],
-                windSpeed: limitedWind[i],
-                humidity: limitedHumidity[i],
-              }))
-            )
-            .build()
-        )
+        .addColumns([
+          { key: "name", header: "Task", type: "string" },
+          { key: "due_at", header: "Deadline", type: "string" },
+          { key: "priorityScore", header: "Priority Score", type: "number" },
+          { key: "points_possible", header: "Points Possible", type: "number" },
+          { key: "assignment_group.group_name", header: "Group", type: "string" },
+        ])
+        .rows(prioritizedTasks.map((task: Assignment) => ({
+          ...task,
+          due_at: task.due_at ? new Date(task.due_at).toLocaleDateString() : "N/A",
+        })))
         .build(),
     };
   },
@@ -192,30 +162,29 @@ const getWeatherForecastConfig: ToolConfig = {
 
 const dainService = defineDAINService({
   metadata: {
-    title: "Weather DAIN Service",
-    description:
-      "A DAIN service for current weather and forecasts using Open-Meteo API",
+    title: "Task Priority DAIN Service",
+    description: "A DAIN service for analyzing and prioritizing academic tasks",
     version: "1.0.0",
     author: "Your Name",
-    tags: ["weather", "forecast", "dain"],
-    logo: "https://cdn-icons-png.flaticon.com/512/252/252035.png",
+    tags: ["tasks", "priority", "academic"],
+    logo: "https://cdn-icons-png.flaticon.com/512/1950/1950715.png",
   },
   exampleQueries: [
     {
-      category: "Weather",
+      category: "Tasks",
       queries: [
-        "What is the weather in Tokyo?",
-        "What is the weather in San Francisco?",
-        "What is the weather in London?",
+        "What should I work on next?",
+        "Show me my task priorities",
+        "What are my most important tasks?",
       ],
     },
   ],
   identity: {
     apiKey: process.env.DAIN_API_KEY,
   },
-  tools: [getWeatherConfig, getWeatherForecastConfig],
+  tools: [getTaskPriorityConfig],
 });
 
 dainService.startNode({ port: port }).then(({ address }) => {
-  console.log("Weather DAIN Service is running at :" + address().port);
+  console.log("Task Priority DAIN Service is running at :" + address().port);
 });
