@@ -5,6 +5,7 @@ import styles from "./page.module.css"
 import { Button } from "@/components/ui/button"
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import ProductivityAssignment from "@/components/ProductivityAssignment/ProductivityAssignment";
 
 const page = () => {
   const initialTime = 300;
@@ -58,7 +59,7 @@ const page = () => {
       <div>
         <div className={styles.header}>Header</div>
         <div className={styles.content}>
-          <div>
+          <div className={styles.first}>
             <div className={styles.left}>
               <div className={styles.headerinner}>Pomodo Timer</div>
               <div className={styles.timer}>
@@ -76,21 +77,16 @@ const page = () => {
               </div>
               <div className={styles.startreset}>
                 {isPaused ? <Button onClick={toggleTimer}>Start</Button> : <Button variant="outline" onClick={toggleTimer}>Pause</Button>}
-                
+
               </div>
               <div className={styles.sessions}>Sessions Completed</div>
             </div>
           </div>
-          <div>
-            <div className={styles.left}>
-              <div className={styles.headerinner}>Reflection Journal</div>
-              <div className={styles.timertwo}>Reflection Prompt</div>
-              <div className={styles.timertwo}>Timer</div>
-
-              <div className={styles.startresettwo}>
-                <Button>Save Entry</Button>
-              </div>
-              <div className={styles.timertwo}>AI Productivity Insights</div>
+          <div className={styles.second}>
+            <div className={styles.right}>
+             <ProductivityAssignment />
+             <ProductivityAssignment />
+             <ProductivityAssignment />
             </div>
           </div>
         </div>

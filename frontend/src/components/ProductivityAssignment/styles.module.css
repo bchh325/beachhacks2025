@@ -1,0 +1,27 @@
+.assignmentContainer {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    background-color: #fafafa;
+    border-radius: 15px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.assignmentLeft {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+}
+
+.assignmentRight {
+    display: flex;
+    flex-direction: row;
+    column-gap: 10px;
+}
+
+.assignmentRight>div {}
+
+.assignmentTitle {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
