@@ -1,8 +1,4 @@
-node_modules/
-.env
-.env.*
-dist/
-build/
+// ...existing code...
 *.log
 .DS_Store
 
@@ -13,5 +9,14 @@ canvas_output.json
 /*.png
 /*.html
 
-/my-chrome-profile/
-*/Cache/
+# Chrome Profile Data
+my-chrome-profile/
+**/my-chrome-profile/
+**/Cache/
+**/Code Cache/
+**/Service Worker/
+**/Session Storage/
+**/Local Storage/
+**/IndexedDB/
+**/GPUCache/
+**/CacheStorage/
