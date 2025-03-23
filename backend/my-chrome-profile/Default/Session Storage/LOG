@@ -1,0 +1,24 @@
+2025/03/22-17:45:55.445 4 Reusing MANIFEST /home/lyyeric/Repos/beachhacks2025/backend/my-chrome-profile/Default/Session Storage/MANIFEST-000001
+2025/03/22-17:45:55.447 4 Recovering log #21
+2025/03/22-17:45:55.448 4 Reusing old log /home/lyyeric/Repos/beachhacks2025/backend/my-chrome-profile/Default/Session Storage/000021.log 
+2025/03/22-17:46:08.154 4 Level-0 table #24: started
+2025/03/22-17:46:08.175 4 Level-0 table #24: 308827 bytes OK
+2025/03/22-17:46:08.185 4 Delete type=0 #21
+2025/03/22-17:49:27.266 5 Level-0 table #26: started
+2025/03/22-17:49:27.282 5 Level-0 table #26: 23367 bytes OK
+2025/03/22-17:49:27.295 5 Delete type=0 #23
+2025/03/22-17:49:27.296 5 Compacting 4@0 + 1@1 files
+2025/03/22-17:49:27.312 5 Generated table #27@0: 164 keys, 20201 bytes
+2025/03/22-17:49:27.312 5 Compacted 4@0 + 1@1 files => 20201 bytes
+2025/03/22-17:49:27.322 5 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/03/22-17:49:27.323 5 Delete type=2 #16
+2025/03/22-17:49:27.323 5 Delete type=2 #26
+2025/03/22-17:49:27.323 5 Delete type=2 #24
+2025/03/22-17:49:27.323 5 Delete type=2 #18
+2025/03/22-17:49:27.323 5 Delete type=2 #21
+2025/03/22-17:52:10.605 4 Level-0 table #29: started
+2025/03/22-17:52:10.630 4 Level-0 table #29: 336326 bytes OK
+2025/03/22-17:52:10.643 4 Delete type=0 #25
+2025/03/22-18:00:13.693 5 Level-0 table #31: started
+2025/03/22-18:00:13.709 5 Level-0 table #31: 335696 bytes OK
+2025/03/22-18:00:13.722 5 Delete type=0 #28

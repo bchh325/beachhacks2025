@@ -9,3 +9,6 @@ build/
 *.pyc
 __pycache__/
 canvas_output.json
+
+/*.png
+/*.html
