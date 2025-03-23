@@ -9,14 +9,9 @@ canvas_output.json
 /*.png
 /*.html
 
-# Chrome Profile Data
-my-chrome-profile/
-**/my-chrome-profile/
-**/Cache/
-**/Code Cache/
-**/Service Worker/
-**/Session Storage/
-**/Local Storage/
-**/IndexedDB/
-**/GPUCache/
-**/CacheStorage/
+# Chrome Profile Data - Full Exclusion
+my-chrome-profile/**/*
+backend/my-chrome-profile/
+**/my-chrome-profile/**
+**/.DS_Store
+**/Thumbs.db
