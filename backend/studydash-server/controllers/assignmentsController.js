@@ -38,3 +38,13 @@ exports.addEvent = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+
+exports.deleteEvent = async (req, res) => {
+    try {
+        console.log(req.body)
+        const user = await assignmentService.deleteEvent(req.body.event_id)
+        res.status(201).json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}

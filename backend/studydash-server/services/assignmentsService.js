@@ -50,6 +50,24 @@ const addEvent = async (event) => {
     console.log(data)
 }
 
+const deleteEvent = async (eventId) => {
+    const supabase = await getDbInstance();  // Get Supabase instance
+    console.log("Deleting event with ID:", eventId);
+
+    const { data, error } = await supabase
+        .from("events")  // Replace "events" with your actual table name
+        .delete()
+        .eq("id", eventId);  // Filter where "id" matches the provided eventId
+
+    if (error) {
+        console.error("Error deleting event:", error);
+        return null;
+    }
+
+    console.log("Event deleted successfully:", data);
+    return data;
+};
+
 
 const updateAssignment = async (id, updatedData) => { }
 
@@ -61,5 +79,6 @@ module.exports = {
     addAssignment,
     updateAssignment,
     deleteAssignment,
-    addEvent
+    addEvent,
+    deleteEvent
 }
