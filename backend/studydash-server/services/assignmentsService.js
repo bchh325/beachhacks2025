@@ -16,8 +16,6 @@ const getAllAssignmentsByCourse = async () => {
         .from("assignments") 
         .select("*") 
         .eq("user_id", userId)
-
-    
 }
 
 const getAssignmentById = async (id) => { }
@@ -38,6 +36,21 @@ const addAssignment = async (assignment) => {
     console.log(data)
 }
 
+const addEvent = async (event) => {
+    const supabase = await getDbInstance()
+    console.log("adding event")
+    const { data, error } = await supabase.from("events").insert({
+        title: event.title,
+        user_id: event.user_id,
+        start: event.start,
+        end: event.end
+    })
+
+    console.log(error)
+    console.log(data)
+}
+
+
 const updateAssignment = async (id, updatedData) => { }
 
 const deleteAssignment = async (id) => { }
@@ -47,5 +60,6 @@ module.exports = {
     getAssignmentById,
     addAssignment,
     updateAssignment,
-    deleteAssignment
+    deleteAssignment,
+    addEvent
 }

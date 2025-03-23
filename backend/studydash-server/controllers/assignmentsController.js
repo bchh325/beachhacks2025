@@ -28,3 +28,13 @@ exports.createAssignment = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.addEvent = async (req, res) => {
+    try {
+        console.log(req.body)
+        const user = await assignmentService.addEvent(req.body)
+        res.status(201).json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
