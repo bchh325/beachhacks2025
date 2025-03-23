@@ -10,16 +10,18 @@ canvas_output.json
 /*.html
 
 # Chrome Profile Data - Complete Exclusion
-my-chrome-profile/
-**/my-chrome-profile/
-backend/my-chrome-profile/
-**/Default/
-**/Cache/
-**/Cache_Data/
-**/Code Cache/
-**/Service Worker/
-**/Session Storage/
-**/Local Storage/
-**/IndexedDB/
-**/GPUCache/
-**/CacheStorage/
+my-chrome-profile/**
+**/my-chrome-profile/**
+backend/my-chrome-profile/**
+**/hyphen-data/**
+**/segmentation_platform/**
+**/Default/**
+**/Cache/**
+**/Cache_Data/**
+**/Code Cache/**
+**/Service Worker/**
+**/Session Storage/**
+**/Local Storage/**
+**/IndexedDB/**
+**/GPUCache/**
+**/CacheStorage/**
