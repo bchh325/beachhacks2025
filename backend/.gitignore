@@ -12,3 +12,6 @@ canvas_output.json
 
 /*.png
 /*.html
+
+/my-chrome-profile/
+*/Cache/
